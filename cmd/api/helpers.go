@@ -1,0 +1,29 @@
+package main
+
+import (
+	"encoding/json"
+	"net/http"
+	"net/mail"
+)
+
+
+func writeJSON(w http.ResponseWriter, status int, body any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(body)
+}
+
+func writeError(w http.ResponseWriter, status int, msg string) {
+	writeJSON(w, status, map[string]string{"error": msg})
+}
+
+func decodeJSON(r *http.Request, v any) error {
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	return dec.Decode(v)
+}
+
+func validEmail(s string) bool {
+	_, err := mail.ParseAddress(s)
+	return err == nil
+}
