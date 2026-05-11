@@ -49,17 +49,16 @@ type SignUpRequest struct {
 }
 
 func (c *CognitoClient) SignUp(ctx context.Context, req SignUpRequest) (map[string]any, error) {
-	secretHash := computeSecretHash(c.clientSecret, req.Email, c.clientID)
+	secretHash := computeSecretHash(c.clientSecret, req.UserName, c.clientID)
 
 	input := &cognitoidentityprovider.SignUpInput{
 		ClientId:   aws.String(c.clientID),
 		SecretHash: aws.String(secretHash),
-		Username:   aws.String(req.Email),
+		Username:   aws.String(req.UserName),
 		Password:   aws.String(req.Password),
-		// UserAttributes: []types.AttributeType{
-		// 	{Name: aws.String("email"), Value: aws.String(req.Email)},
-		// 	{Name: aws.String("userName"), Value: aws.String(req.UserName)},
-		// },
+		UserAttributes: []types.AttributeType{
+			{Name: aws.String("email"), Value: aws.String(req.Email)},
+		},
 	}
 
 	signupOutput, err := c.client.SignUp(ctx, input)
@@ -76,35 +75,35 @@ func (c *CognitoClient) SignUp(ctx context.Context, req SignUpRequest) (map[stri
 }
 
 type ConfirmRequest struct {
-	Email string `json:"email"`
-	Code  string `json:"code"`
+	Username string `json:"username"`
+	Code     string `json:"code"`
 }
 
 func (c *CognitoClient) ConfirmSignUp(ctx context.Context, req ConfirmRequest) error {
-	secretHash := computeSecretHash(c.clientSecret, req.Email, c.clientID)
+	secretHash := computeSecretHash(c.clientSecret, req.Username, c.clientID)
 
 	_, err := c.client.ConfirmSignUp(ctx, &cognitoidentityprovider.ConfirmSignUpInput{
 		ClientId:         aws.String(c.clientID),
 		SecretHash:       aws.String(secretHash),
-		Username:         aws.String(req.Email),
+		Username:         aws.String(req.Username),
 		ConfirmationCode: aws.String(req.Code),
 	})
 	return err
 }
 
 type SignInRequest struct {
-	Email    string `json:"email"`
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
 func (c *CognitoClient) SignIn(ctx context.Context, req SignInRequest) (map[string]any, error) {
-	secretHash := computeSecretHash(c.clientSecret, req.Email, c.clientID)
+	secretHash := computeSecretHash(c.clientSecret, req.Username, c.clientID)
 
 	authOutput, err := c.client.InitiateAuth(ctx, &cognitoidentityprovider.InitiateAuthInput{
 		AuthFlow: types.AuthFlowTypeUserPasswordAuth,
 		ClientId: aws.String(c.clientID),
 		AuthParameters: map[string]string{
-			"USERNAME":    req.Email,
+			"USERNAME":    req.Username,
 			"PASSWORD":    req.Password,
 			"SECRET_HASH": secretHash,
 		},

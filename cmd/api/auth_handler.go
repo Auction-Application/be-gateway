@@ -59,8 +59,8 @@ func (app *application) confirmHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !validEmail(req.Email) {
-		writeError(w, http.StatusBadRequest, "invalid email")
+	if req.Username == "" {
+		writeError(w, http.StatusBadRequest, "username is required")
 		return
 	}
 	if req.Code == "" {
@@ -91,8 +91,8 @@ func (app *application) signInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !validEmail(req.Email) {
-		writeError(w, http.StatusBadRequest, "invalid email")
+	if req.Username == "" {
+		writeError(w, http.StatusBadRequest, "username is required")
 		return
 	}
 	if req.Password == "" {
@@ -101,6 +101,31 @@ func (app *application) signInHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	signInOutput, err := app.auth.SignIn(r.Context(), req)
+
+	if err != nil {
+		fmt.Printf("Error getting signInOutput,%w", err)
+		writeError(w, http.StatusBadRequest, "error signing in")
+		return
+	}
+
+	id_token, ok := (signInOutput["id_token"]).(string)
+
+	if !ok {
+		fmt.Println("Error in conversion of jwt from any type to string type")
+		writeError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+	fmt.Println(id_token)
+	userClaim, err := extractIDTokenClaims(id_token)
+
+	if err != nil {
+		fmt.Printf("Error extracting IdToken,%w", err)
+		writeError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	fmt.Printf("%+v", userClaim)
+
 	if err != nil {
 		writeError(w, http.StatusUnauthorized, err.Error())
 		return
