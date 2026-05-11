@@ -1,6 +1,6 @@
 module github.com/Auction-Application/be-gateway
 
-go 1.24.4
+go 1.25.0
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.41.5
@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.14 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.21 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.21 // indirect
@@ -23,4 +24,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.19 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.10 // indirect
 	github.com/aws/smithy-go v1.24.2 // indirect
+	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
+	golang.org/x/mod v0.31.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/tools v0.40.1-0.20260108161641-ca281cf95054 // indirect
+	honnef.co/go/tools v0.7.0 // indirect
 )
+
+tool honnef.co/go/tools/cmd/staticcheck

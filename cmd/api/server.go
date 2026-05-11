@@ -6,10 +6,8 @@ import (
 	"time"
 )
 
-
-
-func (app *application)serve() error{
-	srv:=&http.Server{
+func (app *application) serve() error {
+	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.config.port),
 		Handler:      app.routes(),
 		IdleTimeout:  time.Minute,
@@ -17,10 +15,10 @@ func (app *application)serve() error{
 		WriteTimeout: 10 * time.Second,
 	}
 
-	fmt.Printf("starting server on port %d...",app.config.port)
-	err:=srv.ListenAndServe()
+	fmt.Printf("starting server on port %d...", app.config.port)
+	err := srv.ListenAndServe()
 
-	if err!=nil{
+	if err != nil {
 		return err
 	}
 

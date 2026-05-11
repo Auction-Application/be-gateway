@@ -13,47 +13,40 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 )
 
-
-
-type CognitoClient struct{
-	client *cognitoidentityprovider.Client
-	clientID string
+type CognitoClient struct {
+	client       *cognitoidentityprovider.Client
+	clientID     string
 	clientSecret string
-	userPoolID string
+	userPoolID   string
 }
 
-func computeSecretHash(clientSecret,username,clientID string) string{
-	mac:=hmac.New(sha256.New,[]byte(clientSecret))
-	mac.Write([]byte(username+clientID))
+func computeSecretHash(clientSecret, username, clientID string) string {
+	mac := hmac.New(sha256.New, []byte(clientSecret))
+	mac.Write([]byte(username + clientID))
 	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
 }
 
-func New()(*CognitoClient,error){
-	cfg,err:=config.LoadDefaultConfig((context.Background()),config.WithRegion(os.Getenv("AWS_REGION")))
-	if err!=nil{
-		return nil,err
+func New() (*CognitoClient, error) {
+	cfg, err := config.LoadDefaultConfig((context.Background()), config.WithRegion(os.Getenv("AWS_REGION")))
+	if err != nil {
+
+		return nil, err
 	}
 
 	return &CognitoClient{
-		client:cognitoidentityprovider.NewFromConfig(cfg) ,
-		clientID: os.Getenv("AWS_COGNITO_CLIENT_ID"),
+		client:       cognitoidentityprovider.NewFromConfig(cfg),
+		clientID:     os.Getenv("AWS_COGNITO_CLIENT_ID"),
 		clientSecret: os.Getenv("AWS_COGNITO_CLIENT_SECRET"),
-		userPoolID: os.Getenv("AWS_COGNITO_USER_POOL_ID"),
-
-	},nil
-
-	
-	
+		userPoolID:   os.Getenv("AWS_COGNITO_USER_POOL_ID"),
+	}, nil
 
 }
 
-type SignUpRequest struct{
-	Email string `json:"email"`
+type SignUpRequest struct {
+	Email    string `json:"email"`
 	Password string `json:"password"`
 	UserName string `json:"username"`
 }
-
-
 
 func (c *CognitoClient) SignUp(ctx context.Context, req SignUpRequest) (map[string]any, error) {
 	secretHash := computeSecretHash(c.clientSecret, req.Email, c.clientID)
@@ -69,22 +62,22 @@ func (c *CognitoClient) SignUp(ctx context.Context, req SignUpRequest) (map[stri
 		// },
 	}
 
-	signupOutput,err:= c.client.SignUp(ctx, input)
+	signupOutput, err := c.client.SignUp(ctx, input)
 
-	if err!=nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
 
 	return map[string]any{
-			"message":   "Sign-up successful. Check your email for the confirmation code.",
-			"user_sub":  aws.ToString(signupOutput.UserSub),
-			"confirmed": signupOutput.UserConfirmed,
-		},nil
+		"message":   "Sign-up successful. Check your email for the confirmation code.",
+		"user_sub":  aws.ToString(signupOutput.UserSub),
+		"confirmed": signupOutput.UserConfirmed,
+	}, nil
 }
 
-type ConfirmRequest struct{
+type ConfirmRequest struct {
 	Email string `json:"email"`
-	Code string `json:"code"`
+	Code  string `json:"code"`
 }
 
 func (c *CognitoClient) ConfirmSignUp(ctx context.Context, req ConfirmRequest) error {
@@ -100,14 +93,14 @@ func (c *CognitoClient) ConfirmSignUp(ctx context.Context, req ConfirmRequest) e
 }
 
 type SignInRequest struct {
-	Email string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 func (c *CognitoClient) SignIn(ctx context.Context, req SignInRequest) (map[string]any, error) {
 	secretHash := computeSecretHash(c.clientSecret, req.Email, c.clientID)
 
-	authOutput,err:= c.client.InitiateAuth(ctx, &cognitoidentityprovider.InitiateAuthInput{
+	authOutput, err := c.client.InitiateAuth(ctx, &cognitoidentityprovider.InitiateAuthInput{
 		AuthFlow: types.AuthFlowTypeUserPasswordAuth,
 		ClientId: aws.String(c.clientID),
 		AuthParameters: map[string]string{
@@ -116,15 +109,15 @@ func (c *CognitoClient) SignIn(ctx context.Context, req SignInRequest) (map[stri
 			"SECRET_HASH": secretHash,
 		},
 	})
-	
-	if err!=nil{
-		return nil,err
+
+	if err != nil {
+		return nil, err
 	}
 
 	return map[string]any{
-			"access_token":  aws.ToString(authOutput.AuthenticationResult.AccessToken),
-			"id_token":      aws.ToString(authOutput.AuthenticationResult.IdToken),
-			"refresh_token": aws.ToString(authOutput.AuthenticationResult.RefreshToken),
-			"expires_in":    authOutput.AuthenticationResult.ExpiresIn,
-		}, nil
+		"access_token":  aws.ToString(authOutput.AuthenticationResult.AccessToken),
+		"id_token":      aws.ToString(authOutput.AuthenticationResult.IdToken),
+		"refresh_token": aws.ToString(authOutput.AuthenticationResult.RefreshToken),
+		"expires_in":    authOutput.AuthenticationResult.ExpiresIn,
+	}, nil
 }
