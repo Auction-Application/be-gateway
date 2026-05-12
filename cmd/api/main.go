@@ -55,10 +55,13 @@ func main() {
 		auth:         cognitoClient,
 		config:       config,
 	}
+	ctx := context.Background()
+
+	defer app.databaseConn.Close(ctx)
 
 	usersTable := usersTableQuery.New(app.databaseConn)
 
-	err = usersTable.InsertUser(context.Background(), usersTableQuery.InsertUserParams{Username: "hello", Email: "hello@gmail.com", AuthID: "12345678"})
+	err = usersTable.InsertUser(ctx, usersTableQuery.InsertUserParams{Username: "hello", Email: "hello@gmail.com", AuthID: "12345678"})
 
 	if err != nil {
 		fmt.Printf("error in inserting user,%v \n", err)

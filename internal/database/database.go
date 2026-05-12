@@ -15,7 +15,6 @@ func ConnectToDB() *pgx.Conn {
 		os.Exit(1)
 	}
 	ctx := context.Background()
-	defer conn.Close(ctx)
 
 	pingErr := conn.Ping(ctx)
 	if pingErr != nil {
