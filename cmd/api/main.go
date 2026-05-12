@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	awsCognito "github.com/Auction-Application/be-gateway/internal/aws_cognito"
-	"github.com/Auction-Application/be-gateway/internal/data"
+	"github.com/Auction-Application/be-gateway/internal/database"
+	"github.com/Auction-Application/be-gateway/internal/database/usersTableQuery"
+	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 )
 
@@ -26,9 +29,9 @@ type config struct {
 }
 
 type application struct {
-	models data.Models
-	auth   *awsCognito.CognitoClient
-	config config
+	databaseConn *pgx.Conn
+	auth         *awsCognito.CognitoClient
+	config       config
 }
 
 func main() {
@@ -48,11 +51,19 @@ func main() {
 	}
 
 	app := &application{
-		models: "sdfsdf",
-		auth:   cognitoClient,
-		config: config,
+		databaseConn: database.ConnectToDB(),
+		auth:         cognitoClient,
+		config:       config,
 	}
 
+	usersTable := usersTableQuery.New(app.databaseConn)
+
+	err = usersTable.InsertUser(context.Background(), usersTableQuery.InsertUserParams{Username: "hello", Email: "hello@gmail.com", AuthID: "12345678"})
+
+	if err != nil {
+		fmt.Printf("error in inserting user,%v \n", err)
+
+	}
 	err = app.serve()
 
 	if err != nil {
