@@ -126,10 +126,5 @@ func (app *application) signInHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("%+v", userClaim)
 
-	if err != nil {
-		writeError(w, http.StatusUnauthorized, err.Error())
-		return
-	}
-
 	writeJSON(w, http.StatusOK, signInOutput)
 }
