@@ -6,10 +6,10 @@ import (
 	"github.com/Auction-Application/be-gateway/internal/database/usersTableQuery"
 )
 
-func (app *application) insertUser() error {
+func (app *application) insertUser(userCredentials idTokenClaims) error {
 	ctx := context.Background()
 	usersTable := usersTableQuery.New(app.databaseConn)
-	err := usersTable.InsertUser(ctx, usersTableQuery.InsertUserParams{Username: "hello", Email: "hello@gmail.com", AuthID: "12345678"})
+	err := usersTable.InsertUser(ctx, usersTableQuery.InsertUserParams{Username: userCredentials.Username, Email: userCredentials.Email, AuthID: userCredentials.Sub})
 
 	if err != nil {
 		return err

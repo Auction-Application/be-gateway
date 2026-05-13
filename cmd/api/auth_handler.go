@@ -108,15 +108,6 @@ func (app *application) signInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.insertUser()
-
-	if err != nil {
-		fmt.Printf("error in inserting user,%v \n", err)
-		writeError(w, http.StatusInternalServerError, "error inserting error")
-		return
-
-	}
-
 	id_token, ok := (signInOutput["id_token"]).(string)
 
 	if !ok {
@@ -131,6 +122,15 @@ func (app *application) signInHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Error extracting IdToken,%w", err)
 		writeError(w, http.StatusInternalServerError, "Something went wrong")
 		return
+	}
+
+	err = app.insertUser(userClaim)
+
+	if err != nil {
+		fmt.Printf("error in inserting user,%v \n", err)
+		writeError(w, http.StatusInternalServerError, "error inserting error")
+		return
+
 	}
 
 	fmt.Printf("%+v", userClaim)
