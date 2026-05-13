@@ -8,7 +8,6 @@ import (
 
 	awsCognito "github.com/Auction-Application/be-gateway/internal/aws_cognito"
 	"github.com/Auction-Application/be-gateway/internal/database"
-	"github.com/Auction-Application/be-gateway/internal/database/usersTableQuery"
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 )
@@ -59,14 +58,7 @@ func main() {
 
 	defer app.databaseConn.Close(ctx)
 
-	usersTable := usersTableQuery.New(app.databaseConn)
-
-	err = usersTable.InsertUser(ctx, usersTableQuery.InsertUserParams{Username: "hello", Email: "hello@gmail.com", AuthID: "12345678"})
-
-	if err != nil {
-		fmt.Printf("error in inserting user,%v \n", err)
-
-	}
+	
 	err = app.serve()
 
 	if err != nil {

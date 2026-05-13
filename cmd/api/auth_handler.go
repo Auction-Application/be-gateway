@@ -103,9 +103,18 @@ func (app *application) signInHandler(w http.ResponseWriter, r *http.Request) {
 	signInOutput, err := app.auth.SignIn(r.Context(), req)
 
 	if err != nil {
-		fmt.Printf("Error getting signInOutput,%w", err)
+		fmt.Printf("Error getting signInOutput,%v", err)
 		writeError(w, http.StatusBadRequest, "error signing in")
 		return
+	}
+
+	err = app.insertUser()
+
+	if err != nil {
+		fmt.Printf("error in inserting user,%v \n", err)
+		writeError(w, http.StatusInternalServerError, "error inserting error")
+		return
+
 	}
 
 	id_token, ok := (signInOutput["id_token"]).(string)
