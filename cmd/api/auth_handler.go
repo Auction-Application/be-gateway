@@ -78,7 +78,6 @@ func (app *application) confirmHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) signInHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("SignIn handler")
 
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed, "method not allowed")

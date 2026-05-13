@@ -58,7 +58,6 @@ func main() {
 
 	defer app.databaseConn.Close(ctx)
 
-	
 	err = app.serve()
 
 	if err != nil {

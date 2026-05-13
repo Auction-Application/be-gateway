@@ -7,6 +7,10 @@
 run/api:
 	go run ./cmd/api 
 
+.PHONY: auto-run/api
+auto-run/api:
+	air
+
 
 # ==================================================================================== #
 # QUALITY CONTROL
