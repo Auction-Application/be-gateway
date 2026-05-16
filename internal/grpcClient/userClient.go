@@ -32,12 +32,5 @@ func InsertUserInUserService(userCredentials IdTokenClaims, conn *grpc.ClientCon
 	}
 
 	return nil
-	// ctx := context.Background()
-	// usersTable := usersTableQuery.New(app.databaseConn)
-	// err := usersTable.InsertUser(ctx, usersTableQuery.InsertUserParams{Username: userCredentials.Username, Email: userCredentials.Email, AuthID: userCredentials.Sub})
-
-	// if err != nil {
-	// 	return err
-	// }
 
 }
