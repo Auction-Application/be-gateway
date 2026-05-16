@@ -32,8 +32,6 @@ func validEmail(s string) bool {
 	return err == nil
 }
 
-
-
 func extractIDTokenClaims(idToken string) (grpcClient.IdTokenClaims, error) {
 	parts := strings.Split(idToken, ".")
 	if len(parts) != 3 {
