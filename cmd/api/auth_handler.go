@@ -124,7 +124,6 @@ func (app *application) signInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// err = app.insertUser(userClaim)
 	err = grpcClient.InsertUserInUserService(userClaim, app.rpcClient)
 
 	if err != nil {
