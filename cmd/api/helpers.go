@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/mail"
 	"strings"
+
+	"github.com/Auction-Application/be-gateway/internal/grpcClient"
 )
 
 func writeJSON(w http.ResponseWriter, status int, body any) {
@@ -30,27 +32,23 @@ func validEmail(s string) bool {
 	return err == nil
 }
 
-type idTokenClaims struct {
-	Sub      string `json:"sub"`
-	Email    string `json:"email"`
-	Username string `json:"cognito:username"`
-}
 
-func extractIDTokenClaims(idToken string) (idTokenClaims, error) {
+
+func extractIDTokenClaims(idToken string) (grpcClient.IdTokenClaims, error) {
 	parts := strings.Split(idToken, ".")
 	if len(parts) != 3 {
-		return idTokenClaims{}, fmt.Errorf("invalid jwt format")
+		return grpcClient.IdTokenClaims{}, fmt.Errorf("invalid jwt format")
 	}
 
 	payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
 	if err != nil {
-		return idTokenClaims{}, fmt.Errorf("decode payload:%w", err)
+		return grpcClient.IdTokenClaims{}, fmt.Errorf("decode payload:%w", err)
 	}
 
-	var claims idTokenClaims
+	var claims grpcClient.IdTokenClaims
 
 	if err := json.Unmarshal(payloadBytes, &claims); err != nil {
-		return idTokenClaims{}, fmt.Errorf("unmarshal error:%w", err)
+		return grpcClient.IdTokenClaims{}, fmt.Errorf("unmarshal error:%w", err)
 
 	}
 

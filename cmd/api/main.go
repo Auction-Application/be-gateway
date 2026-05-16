@@ -1,26 +1,26 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"time"
 
 	awsCognito "github.com/Auction-Application/be-gateway/internal/aws_cognito"
-	"github.com/Auction-Application/be-gateway/internal/database"
-	"github.com/jackc/pgx/v5"
+	"github.com/Auction-Application/be-gateway/internal/grpcClient"
+	"google.golang.org/grpc"
+
 	"github.com/joho/godotenv"
 )
 
 type config struct {
-	port int
-	env  string
-	db   struct {
-		dsn          string
-		maxOpenConns int
-		maxIdleConns int
-		maxIdleTime  time.Duration
-	}
+	httpPort int
+	grpcPort int
+	env      string
+	// db   struct {
+	// 	dsn          string
+	// 	maxOpenConns int
+	// 	maxIdleConns int
+	// 	maxIdleTime  time.Duration
+	// }
 
 	cors struct {
 		trustedOrigins []string
@@ -28,9 +28,10 @@ type config struct {
 }
 
 type application struct {
-	databaseConn *pgx.Conn
-	auth         *awsCognito.CognitoClient
-	config       config
+	// databaseConn *pgx.Conn
+	auth      *awsCognito.CognitoClient
+	config    config
+	rpcClient *grpc.ClientConn
 }
 
 func main() {
@@ -46,18 +47,29 @@ func main() {
 	}
 
 	config := config{
-		port: 8080,
+		httpPort: 8080,
+		grpcPort: 9001,
 	}
+
+	fmt.Println("Starting grpc client")
+
+	grpcClient, err := grpcClient.CreategrpcClient(config.grpcPort)
+	if err != nil {
+		fmt.Printf("Cannot start grpc client:%v", err)
+	}
+	defer grpcClient.Close()
 
 	app := &application{
-		databaseConn: database.ConnectToDB(),
-		auth:         cognitoClient,
-		config:       config,
+		// databaseConn: database.ConnectToDB(),
+		auth:      cognitoClient,
+		config:    config,
+		rpcClient: grpcClient,
 	}
-	ctx := context.Background()
+	// ctx := context.Background()
 
-	defer app.databaseConn.Close(ctx)
+	// defer app.databaseConn.Close(ctx)
 
+	fmt.Println("Starting rest server")
 	err = app.serve()
 
 	if err != nil {

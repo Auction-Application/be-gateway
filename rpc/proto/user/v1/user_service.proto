@@ -1,0 +1,20 @@
+edition = "2023";
+
+package user.v1;
+
+import "user/v1/user.proto";
+
+option go_package = ".;userPb";
+
+service UserService{
+    rpc InsertUser(InsertUserPayload) returns(InsertUserResponse);
+}
+
+message InsertUserPayload{
+    User user=1;
+}
+
+message InsertUserResponse{
+    bool success=1;
+    string message=2;
+}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	awsCognito "github.com/Auction-Application/be-gateway/internal/aws_cognito"
+	"github.com/Auction-Application/be-gateway/internal/grpcClient"
 )
 
 func (app *application) signUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -123,11 +124,12 @@ func (app *application) signInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.insertUser(userClaim)
+	// err = app.insertUser(userClaim)
+	err = grpcClient.InsertUserInUserService(userClaim, app.rpcClient)
 
 	if err != nil {
 		fmt.Printf("error in inserting user,%v \n", err)
-		writeError(w, http.StatusInternalServerError, "error inserting error")
+		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 
 	}
