@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	awsCognito "github.com/Auction-Application/be-gateway/internal/aws_cognito"
 	"github.com/Auction-Application/be-gateway/internal/grpcClient"
@@ -10,6 +11,10 @@ import (
 
 	"github.com/joho/godotenv"
 )
+
+type trustedOrigins struct {
+	trustedOrigins []string
+}
 
 type config struct {
 	httpPort int
@@ -22,9 +27,7 @@ type config struct {
 	// 	maxIdleTime  time.Duration
 	// }
 
-	cors struct {
-		trustedOrigins []string
-	}
+	cors trustedOrigins
 }
 
 type application struct {
@@ -49,6 +52,9 @@ func main() {
 	config := config{
 		httpPort: 8080,
 		grpcPort: 9001,
+		cors: trustedOrigins{
+			trustedOrigins: []string{os.Getenv("TRUSTED_ORIGIN")},
+		},
 	}
 
 	fmt.Println("Starting grpc client")
