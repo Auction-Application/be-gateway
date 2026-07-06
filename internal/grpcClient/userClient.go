@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	userPb "github.com/Auction-Application/be-gateway/rpc/gen/user/v1"
-	"google.golang.org/grpc"
 )
 
 type IdTokenClaims struct {
@@ -14,8 +13,9 @@ type IdTokenClaims struct {
 	Username string `json:"cognito:username"`
 }
 
-func InsertUserInUserService(userCredentials IdTokenClaims, conn *grpc.ClientConn) error {
-	userClient := userPb.NewUserServiceClient(conn)
+// func InsertUserInUserService(userCredentials IdTokenClaims, conn *grpc.ClientConn) error {
+func InsertUserInUserService(userCredentials IdTokenClaims, userClient userPb.UserServiceClient) error {
+	// userClient := userPb.NewUserServiceClient(conn)
 	insertUserResponse, err := userClient.InsertUser(context.Background(), &userPb.InsertUserPayload{
 		User: &userPb.User{
 			Username: &userCredentials.Username,

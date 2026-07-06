@@ -7,7 +7,6 @@ import (
 
 	awsCognito "github.com/Auction-Application/be-gateway/internal/aws_cognito"
 	"github.com/Auction-Application/be-gateway/internal/grpcClient"
-	"google.golang.org/grpc"
 
 	"github.com/joho/godotenv"
 )
@@ -17,9 +16,9 @@ type trustedOrigins struct {
 }
 
 type config struct {
-	httpPort int
-	grpcPort int
-	env      string
+	httpPort    int
+	grpcServers grpcClient.GrpcServerTargets
+	env         string
 	// db   struct {
 	// 	dsn          string
 	// 	maxOpenConns int
@@ -34,7 +33,7 @@ type application struct {
 	// databaseConn *pgx.Conn
 	auth      *awsCognito.CognitoClient
 	config    config
-	rpcClient *grpc.ClientConn
+	rpcClient *grpcClient.Clients
 }
 
 func main() {
@@ -51,7 +50,8 @@ func main() {
 
 	config := config{
 		httpPort: 8080,
-		grpcPort: 9001,
+		// grpcPort: 9001,
+		grpcServers: grpcClient.GrpcServerTargets{Targets: map[grpcClient.GrpcTargetServerName]string{grpcClient.UserService: "localhost:9001", grpcClient.LotService: "localhost:9002"}},
 		cors: trustedOrigins{
 			trustedOrigins: []string{os.Getenv("TRUSTED_ORIGIN")},
 		},
@@ -59,17 +59,19 @@ func main() {
 
 	fmt.Println("Starting grpc client")
 
-	grpcClient, err := grpcClient.CreategrpcClient(config.grpcPort)
+	grpcClients, err := grpcClient.Dial(config.grpcServers.Targets)
 	if err != nil {
-		fmt.Printf("Cannot start grpc client:%v", err)
+		fmt.Println("Error creating grpc clients")
+		return
 	}
-	defer grpcClient.Close()
+
+	defer grpcClients.Close()
 
 	app := &application{
 		// databaseConn: database.ConnectToDB(),
 		auth:      cognitoClient,
 		config:    config,
-		rpcClient: grpcClient,
+		rpcClient: grpcClients,
 	}
 	// ctx := context.Background()
 

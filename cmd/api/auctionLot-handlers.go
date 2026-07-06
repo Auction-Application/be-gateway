@@ -1,10 +1,28 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+
+	"github.com/Auction-Application/be-gateway/internal/grpcClient"
 )
 
 func (app *application) createAuctionLot(w http.ResponseWriter, r *http.Request) {
+	var req grpcClient.LotDetails
+	if err := decodeJSON(r, &req); err != nil {
+		fmt.Println("bad req")
+		writeError(w, http.StatusBadRequest, "invalid JSON: "+err.Error())
+		return
+	}
+
+	auctionLotRes, err := grpcClient.CreateAuctionLotInAuctionService(req, app.rpcClient.LotService)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("createAuctionResponseError")
+		writeError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+	writeJSON(w, http.StatusOK, auctionLotRes)
 
 	// if req.Username == "" {
 	// 	writeError(w, http.StatusBadRequest, "username is required")
@@ -44,9 +62,7 @@ func (app *application) createAuctionLot(w http.ResponseWriter, r *http.Request)
 
 	// fmt.Printf("%+v", userClaim)
 
-	type hello struct {
-		Name string `json:"name"`
-	}
-
-	writeJSON(w, http.StatusOK, hello{Name: "hello"})
+	// type hello struct {
+	// 	Name string `json:"name"`
+	// }
 }

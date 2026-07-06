@@ -79,6 +79,7 @@ func (app *application) confirmHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) signInHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Twice")
 
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
@@ -124,7 +125,7 @@ func (app *application) signInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = grpcClient.InsertUserInUserService(userClaim, app.rpcClient)
+	err = grpcClient.InsertUserInUserService(userClaim, app.rpcClient.UserService)
 
 	if err != nil {
 		fmt.Printf("error in inserting user,%v \n", err)
