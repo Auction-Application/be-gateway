@@ -22,7 +22,9 @@ func (app *application) createAuctionLot(w http.ResponseWriter, r *http.Request)
 		writeError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
-	writeJSON(w, http.StatusOK, auctionLotRes)
+
+	writeProtoJSON(w, http.StatusOK, auctionLotRes)
+	// writeJSON(w, http.StatusOK, auctionLotRes)
 
 	// if req.Username == "" {
 	// 	writeError(w, http.StatusBadRequest, "username is required")

@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/Auction-Application/be-gateway/internal/grpcClient"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 func writeJSON(w http.ResponseWriter, status int, body any) {
@@ -51,4 +53,18 @@ func extractIDTokenClaims(idToken string) (grpcClient.IdTokenClaims, error) {
 	}
 
 	return claims, nil
+}
+
+func writeProtoJSON(w http.ResponseWriter, status int, msg proto.Message) {
+	b, err := protojson.MarshalOptions{
+		UseProtoNames:   false, // false = camelCase (lotId); true = snake_case (lot_id)
+		EmitUnpopulated: false, // true if you want zero-value fields included
+	}.Marshal(msg)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(b)
 }
