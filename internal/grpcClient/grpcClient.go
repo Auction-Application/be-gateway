@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	lotPb "github.com/Auction-Application/be-gateway/rpc/gen/lot/v1"
+	lotimage "github.com/Auction-Application/be-gateway/rpc/gen/lot_image/v1"
 	userPb "github.com/Auction-Application/be-gateway/rpc/gen/user/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -25,8 +26,9 @@ import (
 type GrpcTargetServerName string
 
 const (
-	UserService GrpcTargetServerName = "user"
-	LotService  GrpcTargetServerName = "auctionLot"
+	UserService     GrpcTargetServerName = "user"
+	LotService      GrpcTargetServerName = "auctionLot"
+	LotImageService GrpcTargetServerName = "lotImage"
 )
 
 type GrpcServerTargets struct {
@@ -34,9 +36,10 @@ type GrpcServerTargets struct {
 }
 
 type Clients struct {
-	UserService userPb.UserServiceClient
-	LotService  lotPb.LotServiceClient
-	conns       []*grpc.ClientConn
+	UserService     userPb.UserServiceClient
+	LotService      lotPb.LotServiceClient
+	LotImageService lotimage.LotImageServiceClient
+	conns           []*grpc.ClientConn
 }
 
 func Dial(targets map[GrpcTargetServerName]string) (*Clients, error) {
@@ -61,6 +64,13 @@ func Dial(targets map[GrpcTargetServerName]string) (*Clients, error) {
 		return nil, err
 	}
 	c.UserService = userPb.NewUserServiceClient(userConn)
+
+	lotImageConn, err := dial(targets[LotImageService])
+	if err != nil {
+		return nil, err
+	}
+
+	c.LotImageService = lotimage.NewLotImageServiceClient(lotImageConn)
 
 	return c, nil
 }

@@ -51,7 +51,7 @@ func main() {
 	config := config{
 		httpPort: 8080,
 		// grpcPort: 9001,
-		grpcServers: grpcClient.GrpcServerTargets{Targets: map[grpcClient.GrpcTargetServerName]string{grpcClient.UserService: "localhost:9001", grpcClient.LotService: "localhost:9002"}},
+		grpcServers: grpcClient.GrpcServerTargets{Targets: map[grpcClient.GrpcTargetServerName]string{grpcClient.UserService: "localhost:9001", grpcClient.LotService: "localhost:9002", grpcClient.LotImageService: "localhost:9002"}},
 		cors: trustedOrigins{
 			trustedOrigins: []string{os.Getenv("TRUSTED_ORIGIN")},
 		},

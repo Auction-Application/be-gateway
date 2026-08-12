@@ -68,3 +68,24 @@ func (app *application) createAuctionLot(w http.ResponseWriter, r *http.Request)
 	// 	Name string `json:"name"`
 	// }
 }
+
+func (app *application) generatePresignedUrls(w http.ResponseWriter, r *http.Request) {
+	var req grpcClient.UploadFiles
+
+	if err := decodeJSON(r, &req); err != nil {
+		fmt.Println("Cannot decode json")
+		writeError(w, http.StatusBadRequest, "invalid json:"+err.Error())
+		return
+	}
+
+	presignedUrlResponse, err := grpcClient.GenerateUploadPresignedUrls(req, app.rpcClient.LotImageService)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("generatePresignedUrls for lot image Error")
+		writeError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	writeProtoJSON(w, http.StatusOK, presignedUrlResponse)
+
+}

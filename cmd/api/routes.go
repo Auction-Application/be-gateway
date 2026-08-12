@@ -16,6 +16,7 @@ func (app *application) routes() http.Handler {
 	router.Post("/v1/signup/confirm", app.confirmHandler)
 	router.Post("/v1/signin", app.signInHandler)
 	router.Post("/v1/auction-lot", app.createAuctionLot)
+	router.Post("/v1/auction-lot/media/presigned-urls", app.generatePresignedUrls)
 
 	// return cors.EnableCORS(app.config.cors.trustedOrigins, router)
 
