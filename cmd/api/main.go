@@ -79,10 +79,7 @@ func main() {
 
 	fmt.Println("Starting rest server")
 	err = app.serve()
-
 	if err != nil {
 		fmt.Printf("error in starting the server,%v \n", err)
-
 	}
-
 }

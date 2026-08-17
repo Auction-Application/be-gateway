@@ -15,9 +15,7 @@ type LotDetails struct {
 	BidOpeningPrice int32  `json:"bidOpeningPrice"`
 }
 
-// func CreateAuctionLotInAuctionService(lotInformation LotDetails, conn *grpc.ClientConn) (*lotPb.CreateLotResponse, error) {
 func CreateAuctionLotInAuctionService(lotInformation LotDetails, lotClient lotPb.LotServiceClient) (*lotPb.CreateLotResponse, error) {
-	// lotClient := lotPb.NewLotServiceClient(conn)
 	createLotResponse, err := lotClient.CreateLot(context.TODO(), &lotPb.CreateLotRequest{
 		Lot: &lotPb.Lot{
 			LotTitle:        &lotInformation.Title,
@@ -34,7 +32,6 @@ func CreateAuctionLotInAuctionService(lotInformation LotDetails, lotClient lotPb
 	}
 
 	return createLotResponse, nil
-
 }
 
 type LotImage struct {
@@ -47,6 +44,14 @@ type LotImage struct {
 type UploadFiles struct {
 	LotId     string     `json:"lotId"`
 	LotImages []LotImage `json:"lotImages"`
+}
+
+type CompleteMultiPartUploadReq struct {
+	Parts []EtagPart `json:"parts"`
+}
+type EtagPart struct {
+	Etag string `json:"etag"`
+	Part int32  `json:"part"`
 }
 
 func GenerateUploadPresignedUrls(uploadFiles UploadFiles, client lotimage.LotImageServiceClient) (*lotimage.GeneratePresignedUrlResponse, error) {
@@ -67,4 +72,22 @@ func GenerateUploadPresignedUrls(uploadFiles UploadFiles, client lotimage.LotIma
 		return nil, err
 	}
 	return presignedUrls, nil
+}
+
+func CompleteMultiPartUpload(multiPartAttemptId int64, client lotimage.LotImageServiceClient, parts CompleteMultiPartUploadReq) (*lotimage.CompleteMultiPartUploadResponse, error) {
+	partEtags := make([]*lotimage.PartEtag, 0, len(parts.Parts))
+	for _, p := range parts.Parts {
+		partEtags = append(partEtags, &lotimage.PartEtag{
+			Etag: &p.Etag,
+			Part: &p.Part,
+		})
+	}
+	response, err := client.CompleteMultiPartUpload(context.TODO(), &lotimage.CompleteMultiPartUploadRequest{
+		MultipartAttemptId: &multiPartAttemptId,
+		PartEtags:          partEtags,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
 }

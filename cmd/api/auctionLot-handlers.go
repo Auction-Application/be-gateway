@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/Auction-Application/be-gateway/internal/grpcClient"
+	"github.com/go-chi/chi/v5"
 )
 
 func (app *application) createAuctionLot(w http.ResponseWriter, r *http.Request) {
@@ -87,5 +89,28 @@ func (app *application) generatePresignedUrls(w http.ResponseWriter, r *http.Req
 	}
 
 	writeProtoJSON(w, http.StatusOK, presignedUrlResponse)
+}
 
+func (app *application) completeMultiPartUpload(w http.ResponseWriter, r *http.Request) {
+	var req grpcClient.CompleteMultiPartUploadReq
+
+	if err := decodeJSON(r, &req); err != nil {
+		fmt.Println("Cannot decode json")
+		writeError(w, http.StatusBadRequest, "invalid json:"+err.Error())
+		return
+	}
+	attemptId, err := strconv.Atoi(chi.URLParam(r, "attemptId"))
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Attempt Id should be parsable to integer")
+		return
+	}
+
+	response, err := grpcClient.CompleteMultiPartUpload(int64(attemptId), app.rpcClient.LotImageService, req)
+	if err != nil {
+		fmt.Println(err)
+		writeError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	writeProtoJSON(w, http.StatusOK, response)
 }
