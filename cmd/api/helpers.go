@@ -49,7 +49,6 @@ func extractIDTokenClaims(idToken string) (grpcClient.IdTokenClaims, error) {
 
 	if err := json.Unmarshal(payloadBytes, &claims); err != nil {
 		return grpcClient.IdTokenClaims{}, fmt.Errorf("unmarshal error:%w", err)
-
 	}
 
 	return claims, nil
@@ -57,8 +56,9 @@ func extractIDTokenClaims(idToken string) (grpcClient.IdTokenClaims, error) {
 
 func writeProtoJSON(w http.ResponseWriter, status int, msg proto.Message) {
 	b, err := protojson.MarshalOptions{
-		UseProtoNames:   false, // false = camelCase (lotId); true = snake_case (lot_id)
-		EmitUnpopulated: false, // true if you want zero-value fields included
+		UseProtoNames:     false, // false = camelCase (lotId); true = snake_case (lot_id)
+		EmitUnpopulated:   false, // true if you want zero-value fields included
+		EmitDefaultValues: true,
 	}.Marshal(msg)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "Something went wrong")
