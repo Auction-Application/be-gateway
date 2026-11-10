@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	lotPb "github.com/Auction-Application/be-gateway/rpc/gen/lot/v1"
-	lotimage "github.com/Auction-Application/be-gateway/rpc/gen/lot_image/v1"
+	uploadFile "github.com/Auction-Application/be-gateway/rpc/gen/upload_file/v1"
+	uploadRoom "github.com/Auction-Application/be-gateway/rpc/gen/upload_room/v1"
 	userPb "github.com/Auction-Application/be-gateway/rpc/gen/user/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -37,8 +37,8 @@ type GrpcServerTargets struct {
 
 type Clients struct {
 	UserService     userPb.UserServiceClient
-	LotService      lotPb.LotServiceClient
-	LotImageService lotimage.LotImageServiceClient
+	LotService      uploadRoom.UploadRoomServiceClient
+	LotImageService uploadFile.FileUploadServiceClient
 	conns           []*grpc.ClientConn
 }
 
@@ -57,7 +57,7 @@ func Dial(targets map[GrpcTargetServerName]string) (*Clients, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.LotService = lotPb.NewLotServiceClient(lotConn)
+	c.LotService = uploadRoom.NewUploadRoomServiceClient(lotConn)
 
 	userConn, err := dial(targets[UserService])
 	if err != nil {
@@ -70,7 +70,7 @@ func Dial(targets map[GrpcTargetServerName]string) (*Clients, error) {
 		return nil, err
 	}
 
-	c.LotImageService = lotimage.NewLotImageServiceClient(lotImageConn)
+	c.LotImageService = uploadFile.NewFileUploadServiceClient(lotImageConn)
 
 	return c, nil
 }

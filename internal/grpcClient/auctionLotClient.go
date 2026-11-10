@@ -3,25 +3,22 @@ package grpcClient
 import (
 	"context"
 	"fmt"
+	"strconv"
 
-	lotPb "github.com/Auction-Application/be-gateway/rpc/gen/lot/v1"
-	lotimage "github.com/Auction-Application/be-gateway/rpc/gen/lot_image/v1"
+	uploadFile "github.com/Auction-Application/be-gateway/rpc/gen/upload_file/v1"
+	uploadRoom "github.com/Auction-Application/be-gateway/rpc/gen/upload_room/v1"
 )
 
-type LotDetails struct {
-	Title           string `json:"title"`
-	Category        string `json:"category"`
-	Description     string `json:"description"`
-	BidOpeningPrice int32  `json:"bidOpeningPrice"`
+type UploadRoomDetails struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
 }
 
-func CreateAuctionLotInAuctionService(lotInformation LotDetails, lotClient lotPb.LotServiceClient) (*lotPb.CreateLotResponse, error) {
-	createLotResponse, err := lotClient.CreateLot(context.TODO(), &lotPb.CreateLotRequest{
-		Lot: &lotPb.Lot{
-			LotTitle:        &lotInformation.Title,
-			Description:     &lotInformation.Description,
-			Category:        &lotInformation.Category,
-			BidOpeningPrice: &lotInformation.BidOpeningPrice,
+func CreateAuctionLotInAuctionService(lotInformation UploadRoomDetails, lotClient uploadRoom.UploadRoomServiceClient) (*uploadRoom.CreateRoomResponse, error) {
+	createLotResponse, err := lotClient.CreateRoom(context.TODO(), &uploadRoom.CreateRoomRequest{
+		Room: &uploadRoom.UploadRoom{
+			Title:       &lotInformation.Title,
+			Description: &lotInformation.Description,
 		},
 	})
 
@@ -34,7 +31,7 @@ func CreateAuctionLotInAuctionService(lotInformation LotDetails, lotClient lotPb
 	return createLotResponse, nil
 }
 
-type LotImage struct {
+type File struct {
 	Sha256       string `json:"sha256"`
 	FileName     string `json:"fileName"`
 	ClientFileId int32  `json:"clientFileId"`
@@ -42,8 +39,8 @@ type LotImage struct {
 }
 
 type UploadFiles struct {
-	LotId     string     `json:"lotId"`
-	LotImages []LotImage `json:"lotImages"`
+	UploadRoomId string `json:"uploadRoomId"`
+	Files        []File `json:"files"`
 }
 
 type CompleteMultiPartUploadReq struct {
@@ -51,22 +48,28 @@ type CompleteMultiPartUploadReq struct {
 }
 type EtagPart struct {
 	Etag string `json:"etag"`
-	Part int32  `json:"part"`
+	Part uint32 `json:"part"`
 }
 
-func GenerateUploadPresignedUrls(uploadFiles UploadFiles, client lotimage.LotImageServiceClient) (*lotimage.GeneratePresignedUrlResponse, error) {
-	lotImages := make([]*lotimage.ImageFile, 0, len(uploadFiles.LotImages))
-	for _, v := range uploadFiles.LotImages {
-		lotImages = append(lotImages, &lotimage.ImageFile{
+func GenerateUploadPresignedUrls(uploadFiles UploadFiles, client uploadFile.FileUploadServiceClient) (*uploadFile.GeneratePresignedUrlResponse, error) {
+	lotImages := make([]*uploadFile.File, 0, len(uploadFiles.Files))
+	for _, v := range uploadFiles.Files {
+		lotImages = append(lotImages, &uploadFile.File{
 			Sha256:       &v.Sha256,
-			FileName:     &v.FileName,
 			ClientFileId: &v.ClientFileId,
-			FileSize:     &v.FileSize,
+			// fileSize is string in json and uint64 in protobuf
+			FileSize: &v.FileSize,
 		})
 	}
-	presignedUrls, err := client.GeneratePresignedUrl(context.TODO(), &lotimage.GeneratePresignedUrlRequest{
-		LotId:     &uploadFiles.LotId,
-		LotImages: lotImages,
+	// not using Math/big package here, to convert string to bigint
+	roomId, err := strconv.Atoi(uploadFiles.UploadRoomId)
+	if err != nil {
+		return nil, err
+	}
+	presignedUrls, err := client.GeneratePresignedUrl(context.TODO(), &uploadFile.GeneratePresignedUrlRequest{
+		// not using Math/big package here, to convert string to bigint
+		UploadRoomId: new(uint64(roomId)),
+		Files:        lotImages,
 	})
 	if err != nil {
 		return nil, err
@@ -74,15 +77,15 @@ func GenerateUploadPresignedUrls(uploadFiles UploadFiles, client lotimage.LotIma
 	return presignedUrls, nil
 }
 
-func CompleteMultiPartUpload(multiPartAttemptId int64, client lotimage.LotImageServiceClient, parts CompleteMultiPartUploadReq) (*lotimage.CompleteMultiPartUploadResponse, error) {
-	partEtags := make([]*lotimage.PartEtag, 0, len(parts.Parts))
+func CompleteMultiPartUpload(multiPartAttemptId int64, client uploadFile.FileUploadServiceClient, parts CompleteMultiPartUploadReq) (*uploadFile.CompleteMultiPartUploadResponse, error) {
+	partEtags := make([]*uploadFile.PartEtag, 0, len(parts.Parts))
 	for _, p := range parts.Parts {
-		partEtags = append(partEtags, &lotimage.PartEtag{
+		partEtags = append(partEtags, &uploadFile.PartEtag{
 			Etag: &p.Etag,
 			Part: &p.Part,
 		})
 	}
-	response, err := client.CompleteMultiPartUpload(context.TODO(), &lotimage.CompleteMultiPartUploadRequest{
+	response, err := client.CompleteMultiPartUpload(context.TODO(), &uploadFile.CompleteMultiPartUploadRequest{
 		MultipartAttemptId: &multiPartAttemptId,
 		PartEtags:          partEtags,
 	})

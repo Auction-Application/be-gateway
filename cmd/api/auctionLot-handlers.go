@@ -10,7 +10,7 @@ import (
 )
 
 func (app *application) createAuctionLot(w http.ResponseWriter, r *http.Request) {
-	var req grpcClient.LotDetails
+	var req grpcClient.UploadRoomDetails
 	if err := decodeJSON(r, &req); err != nil {
 		fmt.Println("bad req")
 		writeError(w, http.StatusBadRequest, "invalid JSON: "+err.Error())
